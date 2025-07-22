@@ -6,18 +6,18 @@ import TaskForm from './components/taskForm';
 import TaskList from './components/taskList';
 
 function App() {
-  // This state keeps track of the currently selected project
+  // This keeps track of which project was clicked so tasks can be linked to it
   const [selectedProjectId, setSelectedProjectId] = useState(null);
 
-  // This helps refresh task list after a new task is added
+  // Used to force task list to reload when a task is added
   const [refreshTasks, setRefreshTasks] = useState(false);
 
-  // When a project is selected, store its ID
-  const handleProjectClick = (projectId) => {
-    setSelectedProjectId(projectId);
+  // When a project is selected from the list, this stores its ID
+  const handleProjectSelect = (project) => {
+    setSelectedProjectId(project.id); // using project.id from the ProjectList callback
   };
 
-  // Flips refresh state when a task is added, forcing re-render of task list
+  // This just flips a flag to re-trigger the task list component
   const handleTaskCreated = () => {
     setRefreshTasks((prev) => !prev);
   };
@@ -26,25 +26,25 @@ function App() {
     <div className="container mt-4">
       <h1 className="mb-4">Task Manager</h1>
 
-      {/* Form to add a new project */}
+      {/* This form lets user add a new project */}
       <ProjectForm />
 
       <hr />
 
-      {/* Displays list of all projects. When a project is clicked, its ID is passed to the App state */}
-      <ProjectList onProjectClick={handleProjectClick} />
+      {/* All existing projects are listed here – click one to load its tasks */}
+      <ProjectList onProjectSelect={handleProjectSelect} />
 
       <hr />
 
-      {/* When a project is selected, show task form and task list */}
+      {/* If a project is selected, show task-related components */}
       {selectedProjectId && (
         <>
-          {/* Form to add new task to selected project */}
+          {/* Add a new task to the selected project */}
           <TaskForm projectId={selectedProjectId} onTaskCreated={handleTaskCreated} />
 
           <hr />
 
-          {/* Task list for selected project, reloaded on refresh toggle */}
+          {/* Show tasks that belong to the selected project */}
           <TaskList projectId={selectedProjectId} refresh={refreshTasks} />
         </>
       )}
