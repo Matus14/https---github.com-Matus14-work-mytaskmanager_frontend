@@ -3,45 +3,46 @@
 
 // Importing the React and functions I made to get all projects from the backend
 import React, { useEffect, useState } from 'react';
+// These functions talk to the backend (API calls)
 import { getAllProjects, deleteProject } from '../services/projectService';
 
-function ProjectList({ refresh }) {
-// Here in this list I keep all project which are comming from backend
+function ProjectList({ refresh, onProjectSelect }) {
+  // This holds all the projects we fetch from backend
   const [projects, setProjects] = useState([]);
 
-  
-
-// This part runs when there is a refresh or a change(added new project )
+  // This runs anytime 'refresh' changes — for example when a new project is added
   useEffect(() => {
-    fetchProjects(); // load the projects from the backend
+    fetchProjects();
   }, [refresh]);
 
+  // Gets all projects from backend and updates state
   const fetchProjects = () => {
-    // Calling function to get all projects
     getAllProjects()
       .then((response) => {
-        // Save the project in state so it can be displayed
         setProjects(response.data);
       })
       .catch((error) => {
-        // If there is an error, this will handle it
-        console.error('Error in projects:', error);
+        console.error('Error while fetching projects:', error);
       });
   };
 
-  // This part runs when delete button is used.
+  // This handles deleting a project by its ID
   const handleDelete = (id) => {
-    // Pop up message to make sure the user really wants to delete project
     if (window.confirm('Are you sure you want to delete this project?')) {
       deleteProject(id)
         .then(() => {
-            // Once deleted, refresh the project list
-          fetchProjects(); 
+          fetchProjects(); // Refresh after deletion
         })
         .catch((error) => {
-            // If there is problem, error message hadle this.
-          console.error('Error deleting project:', error);
+          console.error('Error while deleting project:', error);
         });
+    }
+  };
+
+  // Called when user clicks on a project — passes it up to App.jsx
+  const handleSelect = (project) => {
+    if (onProjectSelect) {
+      onProjectSelect(project);
     }
   };
 
@@ -49,16 +50,18 @@ function ProjectList({ refresh }) {
     <div>
       <h2 className="mb-3">Project List</h2>
       <ul className="list-group">
-        {/* Loop through all the projects and display each as a list item */}
         {projects.map((project) => (
           <li
             key={project.id}
             className="list-group-item d-flex justify-content-between align-items-center"
           >
-            <div>
+            <div
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleSelect(project)}
+            >
               <strong>{project.name}</strong> – {project.description}
             </div>
-            {/* Delete button that runs handleDelete when clicked */}
+
             <button
               className="btn btn-sm btn-danger"
               onClick={() => handleDelete(project.id)}
@@ -70,7 +73,6 @@ function ProjectList({ refresh }) {
       </ul>
     </div>
   );
-
 }
 
 export default ProjectList;

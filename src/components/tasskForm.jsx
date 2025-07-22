@@ -1,29 +1,39 @@
 
+
 import React, { useState } from 'react';
 import { createTask } from '../services/taskService';
 
-function TaskForm({ onTaskCreated }) {
-  const [task, setTask] = useState({
-    name: '',
-    description: '',
-    projectId: ''
-  });
+function TaskForm({ projectId, onTaskCreated }) {
+  // Form state – to keep track of user inputs
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [status, setStatus] = useState('TODO');
 
-  const handleChange = (e) => {
-    setTask({ ...task, [e.target.name]: e.target.value });
-  };
-
+  // When user submits the form
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!task.name || !task.projectId) {
-      alert("Task name and project ID are required");
-      return;
-    }
 
-    createTask(task)
+    // Making a task object to send to backend
+    const newTask = {
+      title,
+      description,
+      dueDate,
+      status,
+      project: {
+        id: projectId
+      }
+    };
+
+    // Calling backend service to save the task
+    createTask(newTask)
       .then(() => {
-        setTask({ name: '', description: '', projectId: '' });
-        onTaskCreated(); // refresh list
+        onTaskCreated(); // Tells parent to refresh task list
+        // Clear form
+        setTitle('');
+        setDescription('');
+        setDueDate('');
+        setStatus('TODO');
       })
       .catch((error) => {
         console.error('Error creating task:', error);
@@ -31,38 +41,52 @@ function TaskForm({ onTaskCreated }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4">
-      <h4>Add Task</h4>
-      <div className="mb-2">
+    <form onSubmit={handleSubmit}>
+      <h4 className="mb-3">Add New Task</h4>
+
+      <div className="mb-3">
         <input
           type="text"
-          name="name"
-          placeholder="Task name"
-          value={task.name}
-          onChange={handleChange}
           className="form-control"
+          placeholder="Task Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
         />
       </div>
-      <div className="mb-2">
+
+      <div className="mb-3">
+        <textarea
+          className="form-control"
+          placeholder="Task Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+
+      <div className="mb-3">
         <input
-          type="text"
-          name="description"
-          placeholder="Description"
-          value={task.description}
-          onChange={handleChange}
+          type="date"
           className="form-control"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
         />
       </div>
-      <div className="mb-2">
-        <input
-          type="number"
-          name="projectId"
-          placeholder="Project ID"
-          value={task.projectId}
-          onChange={handleChange}
-          className="form-control"
-        />
+
+      <div className="mb-3">
+        <select
+          className="form-select"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="TODO">To Do</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="DONE">Done</option>
+          <option value="FAILED">Failed</option>
+          <option value="DELAYED">Delayed</option>
+        </select>
       </div>
+
       <button type="submit" className="btn btn-primary">Add Task</button>
     </form>
   );
